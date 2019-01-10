@@ -1,0 +1,11 @@
+/.idea
+/docker/db
+/docker/logs
+
+###> symfony/framework-bundle ###
+/.env.local
+/.env.*.local
+/public/bundles/
+/var/
+/vendor/
+###< symfony/framework-bundle ###

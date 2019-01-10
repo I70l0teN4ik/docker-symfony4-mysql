@@ -1,0 +1,28 @@
+version: '3'
+
+services:
+  db:
+    image: mysql:5.7
+    restart: always
+    container_name: app_db
+    environment:
+      MYSQL_ROOT_PASSWORD: root
+      MYSQL_DATABASE: ${DB_NAME}
+      MYSQL_USER: ${DB_USER}
+      MYSQL_PASSWORD: ${DB_PASS}
+    volumes:
+    - ./docker/db/data:/var/lib/mysql
+  php:
+    build: ./docker/php7-fpm
+    container_name: app_php
+    env_file:
+    - ./.env
+    volumes:
+    - ./:/var/www/symfony:rw
+  nginx:
+    build: ./docker/nginx
+    container_name: app_nginx
+    ports:
+    - 80:80
+    volumes:
+    - ./docker/logs/nginx/:/var/log/nginx:rw
