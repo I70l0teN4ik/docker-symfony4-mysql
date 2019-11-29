@@ -1,30 +1,27 @@
-FROM php:7.2-fpm
-ARG TIMEZONE
+FROM php:7.4-fpm
 
-RUN apt-get update && apt-get install -y openssl git unzip zlib1g-dev
-
-COPY xdebug.ini /usr/local/etc/php/conf.d/xdebug.ini
+RUN apt-get update && apt-get install -y openssl git zip unzip
 
 # Install Composer
-RUN curl -sS https://getcomposer.org/installer | php -- --install-dir=/usr/local/bin --filename=composer
-RUN composer --version
+ENV COMPOSER_ALLOW_SUPERUSER=1
+RUN curl -sS https://getcomposer.org/installer | php -- --install-dir=/usr/local/bin --filename=composer && composer -V
 
 # Set timezone
-RUN ln -snf /usr/share/zoneinfo/${TIMEZONE} /etc/localtime && echo ${TIMEZONE} > /etc/timezone
-RUN printf '[PHP]\ndate.timezone = "%s"\n', ${TIMEZONE} > /usr/local/etc/php/conf.d/tzone.ini
-RUN "date"
+ARG TZ
+RUN if [$TZ != ""]; then ln -snf /usr/share/zoneinfo/$TZ /etc/localtime && echo $TZ > /etc/timezone \
+    && printf '[PHP]\ndate.timezone = "%s"\n', $TZ  > /usr/local/etc/php/conf.d/tzone.ini && date; fi
 
 # Type docker-php-ext-install to see available extensions
-RUN docker-php-ext-install pdo pdo_mysql zip bcmath sockets
+RUN docker-php-ext-install pdo pdo_mysql bcmath sockets
 
+COPY php-fpm.d/* /usr/local/etc/php-fpm.d/
+COPY conf.d/* /usr/local/etc/php/conf.d/
 # install xdebug
-RUN pecl install xdebug
-RUN docker-php-ext-enable xdebug
+RUN pecl install xdebug && docker-php-ext-enable xdebug
 
 RUN echo 'alias sf="/var/www/symfony/bin/console"' >> ~/.bashrc
-RUN usermod -u 1000 www-data
 
-# Run this command only once to load data in Docker DB
-# RUN php /var/www/symfony/bin/console doctrine:database:import /var/tmp/db_schema.sql
+RUN chown www-data:1000 -R /var/www/ && usermod -u 1000 www-data
+USER www-data
 
 WORKDIR /var/www/symfony
