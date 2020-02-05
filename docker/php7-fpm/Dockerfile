@@ -19,7 +19,7 @@ COPY conf.d/* /usr/local/etc/php/conf.d/
 # install xdebug
 RUN pecl install xdebug && docker-php-ext-enable xdebug
 
-RUN echo 'alias sf="/var/www/symfony/bin/console"' >> ~/.bashrc
+RUN echo 'alias sf=/var/www/symfony/bin/console' >> ~/.bashrc
 
 RUN chown www-data:1000 -R /var/www/ && usermod -u 1000 www-data
 USER www-data
